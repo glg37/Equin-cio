@@ -7,13 +7,14 @@ public class Tree : MonoBehaviour
     private int vidaAtual;
 
     [Header("Sprites da barra de vida")]
-    public GameObject[] segmentosBarra; // Cada segmento é um GameObject (sprite)
+    public GameObject barraDeVida; // Objeto pai da barra
+    public GameObject[] segmentosBarra; // Array de segmentos do maior para o menor
 
     [Header("Madeira")]
     public int quantidadeMadeira = 1;
 
     [Header("Imagem de interação")]
-    public GameObject imagemInteracao; // Arraste aqui a imagem (botão “E”)
+    public GameObject imagemInteracao; // Ex: botão “E”
 
     private bool jogadorProximo = false;
 
@@ -21,18 +22,18 @@ public class Tree : MonoBehaviour
     {
         vidaAtual = vidaMaxima;
         AtualizarBarra();
-        DesativarBarra(); // Começa invisível
+
+        if (barraDeVida != null)
+            barraDeVida.SetActive(false);
 
         if (imagemInteracao != null)
-            imagemInteracao.SetActive(false); // Esconde imagem no início
+            imagemInteracao.SetActive(false);
     }
 
     void Update()
     {
         if (jogadorProximo && Input.GetKeyDown(KeyCode.E))
-        {
             Bater();
-        }
     }
 
     private void Bater()
@@ -54,6 +55,10 @@ public class Tree : MonoBehaviour
 
     private void AtualizarBarra()
     {
+        if (barraDeVida != null)
+            barraDeVida.SetActive(true);
+
+        // Ativa/desativa segmentos conforme a vida
         for (int i = 0; i < segmentosBarra.Length; i++)
         {
             if (segmentosBarra[i] != null)
@@ -66,10 +71,12 @@ public class Tree : MonoBehaviour
         if (collision.CompareTag("Player"))
         {
             jogadorProximo = true;
-            AtivarBarra();
+
+            if (barraDeVida != null)
+                barraDeVida.SetActive(true);
 
             if (imagemInteracao != null)
-                imagemInteracao.SetActive(true); // Mostra imagem
+                imagemInteracao.SetActive(true);
         }
     }
 
@@ -78,24 +85,12 @@ public class Tree : MonoBehaviour
         if (collision.CompareTag("Player"))
         {
             jogadorProximo = false;
-            DesativarBarra();
+
+            if (barraDeVida != null)
+                barraDeVida.SetActive(false);
 
             if (imagemInteracao != null)
-                imagemInteracao.SetActive(false); // Esconde imagem
+                imagemInteracao.SetActive(false);
         }
-    }
-
-    private void AtivarBarra()
-    {
-        foreach (var segmento in segmentosBarra)
-            if (segmento != null)
-                segmento.SetActive(true);
-    }
-
-    private void DesativarBarra()
-    {
-        foreach (var segmento in segmentosBarra)
-            if (segmento != null)
-                segmento.SetActive(false);
     }
 }
