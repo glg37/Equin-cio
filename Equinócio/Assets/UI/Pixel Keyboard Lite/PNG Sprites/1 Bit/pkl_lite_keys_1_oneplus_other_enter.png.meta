@@ -160,7 +160,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      pkl_lite_keys_1_oneplus_other_enter_0: -6850115533560746245
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

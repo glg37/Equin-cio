@@ -1,6 +1,5 @@
 using UnityEngine;
 using TMPro;
-using System.Collections;
 
 public class Inventory : MonoBehaviour
 {
@@ -8,14 +7,13 @@ public class Inventory : MonoBehaviour
 
     [Header("Recursos")]
     public int madeira = 0;
-    public int madeiraMaxima = 15; // Máximo de madeira que pode coletar
+    public int madeiraMaxima = 15;
 
     [Header("UI de Recursos")]
-    public TextMeshProUGUI textoMadeira; // Arraste o TMPUGUI do Canvas aqui
+    public TextMeshProUGUI textoMadeira;
 
     private void Awake()
     {
-        // Singleton
         if (instance == null)
         {
             instance = this;
@@ -27,21 +25,26 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    // NÃO atualiza a UI no Start
     private void Start()
     {
-        // A UI só vai aparecer depois do diálogo
+        // UI só aparece depois do diálogo inicial
+        if (textoMadeira != null)
+            textoMadeira.gameObject.SetActive(false);
     }
 
     public void AdicionarMadeira(int quantidade)
     {
         madeira += quantidade;
-
-        // Garante que não passe do máximo
         if (madeira > madeiraMaxima)
             madeira = madeiraMaxima;
 
         AtualizarUI();
+
+        //  Checa se completou a missão
+        if (madeira >= madeiraMaxima)
+        {
+            MissaoConcluida();
+        }
     }
 
     public bool RemoverMadeira(int quantidade)
@@ -60,13 +63,24 @@ public class Inventory : MonoBehaviour
         if (textoMadeira != null)
         {
             textoMadeira.text = "Madeiras coletadas: " + madeira + "/" + madeiraMaxima;
-            textoMadeira.gameObject.SetActive(true); // garante que fique visível
+            textoMadeira.gameObject.SetActive(true);
         }
     }
 
-    // Função pública para mostrar a UI da missão
     public void MostrarMissao()
     {
         AtualizarUI();
+    }
+
+    private void MissaoConcluida()
+    {
+        Debug.Log("Missão de coletar madeira concluída!");
+
+        // chama o diálogo de pós-missão
+        NpcDialogue npc = Object.FindFirstObjectByType<NpcDialogue>();
+        if (npc != null)
+        {
+            npc.StartAfterMissionDialogue();
+        }
     }
 }

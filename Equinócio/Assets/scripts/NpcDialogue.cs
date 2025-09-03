@@ -4,9 +4,14 @@ using TMPro;
 
 public class NpcDialogue : MonoBehaviour
 {
-    [Header("Configuração do Diálogo")]
-    public string[] dialogueNpc;       // falas do personagem
+    [Header("Configuração do Diálogo Inicial")]
+    public string[] dialogueNpc;
     private int dialogueIndex;
+
+    [Header("Configuração do Diálogo de Pós-Missão")]
+    public string[] dialogueAfterMission;
+    private int afterMissionIndex;
+    private bool afterMissionDialogueActive;
 
     [Header("Referências de UI")]
     public GameObject dialoguePanel;
@@ -23,20 +28,22 @@ public class NpcDialogue : MonoBehaviour
     {
         dialoguePanel.SetActive(false);
 
-        // acha o player e o animator
         player = Object.FindFirstObjectByType<PlayerTopDownController>();
         if (player != null)
             playerAnimator = player.GetComponent<Animator>();
 
-        // inicia o diálogo automaticamente
         StartDialogue();
     }
 
     void Update()
     {
-        if (dialogueActive && Input.GetButtonDown("Fire1")) // botão esquerdo do mouse
+        if (dialogueActive && Input.GetButtonDown("Fire1"))
         {
             ShowNextLine();
+        }
+        else if (afterMissionDialogueActive && Input.GetButtonDown("Fire1"))
+        {
+            ShowNextAfterMissionLine();
         }
     }
 
@@ -48,16 +55,9 @@ public class NpcDialogue : MonoBehaviour
         dialoguePanel.SetActive(true);
         dialogueActive = true;
 
-        // pausa o jogo inteiro
         Time.timeScale = 0f;
-
-        // trava o player
-        if (player != null)
-            player.canMove = false;
-
-        // pausa animação de movimento
-        if (playerAnimator != null)
-            playerAnimator.SetBool("isMoving", false);
+        if (player != null) player.canMove = false;
+        if (playerAnimator != null) playerAnimator.SetBool("isMoving", false);
 
         ShowNextLine();
     }
@@ -71,7 +71,7 @@ public class NpcDialogue : MonoBehaviour
         }
         else
         {
-            EndDialogue(); // chama a função final ao terminar o diálogo
+            EndDialogue();
         }
     }
 
@@ -80,17 +80,48 @@ public class NpcDialogue : MonoBehaviour
         dialoguePanel.SetActive(false);
         dialogueActive = false;
 
-        // libera o player
-        if (player != null)
-            player.canMove = true;
-
-        // retoma o jogo
+        if (player != null) player.canMove = true;
         Time.timeScale = 1f;
 
-        // MOSTRA A MISSÃO APÓS O DIÁLOGO
         if (Inventory.instance != null)
-        {
             Inventory.instance.MostrarMissao();
+    }
+
+    //  Chamado quando completar a missão
+    public void StartAfterMissionDialogue()
+    {
+        nameNpc.text = "Raseth";
+        imageNpc.sprite = spriteNpc;
+        afterMissionIndex = 0;
+        dialoguePanel.SetActive(true);
+        afterMissionDialogueActive = true;
+
+        Time.timeScale = 0f;
+        if (player != null) player.canMove = false;
+        if (playerAnimator != null) playerAnimator.SetBool("isMoving", false);
+
+        ShowNextAfterMissionLine();
+    }
+
+    void ShowNextAfterMissionLine()
+    {
+        if (afterMissionIndex < dialogueAfterMission.Length)
+        {
+            dialogueText.text = dialogueAfterMission[afterMissionIndex];
+            afterMissionIndex++;
         }
+        else
+        {
+            EndAfterMissionDialogue();
+        }
+    }
+
+    void EndAfterMissionDialogue()
+    {
+        dialoguePanel.SetActive(false);
+        afterMissionDialogueActive = false;
+
+        if (player != null) player.canMove = true;
+        Time.timeScale = 1f;
     }
 }
