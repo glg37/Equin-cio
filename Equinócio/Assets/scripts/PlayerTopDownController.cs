@@ -14,6 +14,9 @@ public class PlayerTopDownController : MonoBehaviour
     private Vector2 input;
     private Vector2 desiredVelocity;
 
+    [HideInInspector]
+    public bool canMove = true; // controla se o player pode se mover
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -26,29 +29,38 @@ public class PlayerTopDownController : MonoBehaviour
 
     private void Update()
     {
+        if (!canMove)
+        {
+            // para o movimento e animação se o player não puder se mover
+            rb.linearVelocity = Vector2.zero;
+            animator.SetBool("isMoving", false);
+            return;
+        }
+
         // Input
         float x = Input.GetAxisRaw("Horizontal");
         float y = Input.GetAxisRaw("Vertical");
         input = new Vector2(x, y).normalized;
-
         desiredVelocity = input * moveSpeed;
 
         // Animação
         bool isMoving = input.sqrMagnitude > 0.01f;
         animator.SetBool("isMoving", isMoving);
-
+       
         if (x > 0.01f)
-            spriteRenderer.flipX = true; // indo para a direita
+            spriteRenderer.flipX = true;  // indo para a direita
         else if (x < -0.01f)
-            spriteRenderer.flipX = false;  // indo para a esquerda
+            spriteRenderer.flipX = false; // indo para a esquerda
     }
 
     private void FixedUpdate()
     {
+        if (!canMove)
+            return;
+
         // Movimento suave
         Vector2 currentVel = rb.linearVelocity;
         float rate = (desiredVelocity.sqrMagnitude > 0.01f) ? acceleration : deceleration;
-
         rb.linearVelocity = Vector2.MoveTowards(currentVel, desiredVelocity, rate * Time.fixedDeltaTime);
     }
 }

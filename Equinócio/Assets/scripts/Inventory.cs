@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections;
 
 public class Inventory : MonoBehaviour
 {
@@ -26,9 +27,10 @@ public class Inventory : MonoBehaviour
         }
     }
 
+    // NÃO atualiza a UI no Start
     private void Start()
     {
-        AtualizarUI();
+        // A UI só vai aparecer depois do diálogo
     }
 
     public void AdicionarMadeira(int quantidade)
@@ -58,6 +60,13 @@ public class Inventory : MonoBehaviour
         if (textoMadeira != null)
         {
             textoMadeira.text = "Madeiras coletadas: " + madeira + "/" + madeiraMaxima;
+            textoMadeira.gameObject.SetActive(true); // garante que fique visível
         }
+    }
+
+    // Função pública para mostrar a UI da missão
+    public void MostrarMissao()
+    {
+        AtualizarUI();
     }
 }
