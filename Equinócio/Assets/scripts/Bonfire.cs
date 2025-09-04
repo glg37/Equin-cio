@@ -1,146 +1,141 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class Bonfire : MonoBehaviour
 {
     [Header("UI")]
-    public GameObject spriteE;              // Indica para apertar E
-    public GameObject painelMinigame;       // Painel do minigame de clique
-    public Image barraProgresso;            // Barra de clique
-    public GameObject painelSegurar;        // Painel do minigame de segurar
-    public Image barraSegurar;              // Barra de segurar
+    public GameObject spriteE;
+    public GameObject painelMinigame;
+    public Image barraProgresso;
 
     [Header("Fogueira")]
-    public GameObject fogueiraGameObject;   // Fogueira na cena (começa desativada)
-    public Animator animFogueira;           // Animator para animação de fogo
+    public GameObject prefabFogueiraAcesa; // Prefab da fogueira já acesa
 
     [Header("Configuração")]
-    public int madeiraNecessaria = 2;
-    public float aumentoPorClique = 0.2f;   // Quanto a barra aumenta por clique
-    public float tempoParaZerar = 3f;       // Decaimento da barra de clique
-    public float tempoParaSegurar = 2f;     // Tempo necessário para segurar a barra
-    public float tempoParaDecair = 1.5f;    // Decaimento da barra de segurar se soltar
-
-    [HideInInspector] public bool botaoSegurando = false;
+    public int madeiraNecessaria = 2;  // Madeira consumida por fogueira
+    public float aumentoPorClique = 0.2f;
+    public float tempoParaZerar = 3f;
 
     private bool playerPerto = false;
     private bool minigameAtivo = false;
-    private bool segurandoAtivo = false;
     private bool fogueiraCriada = false;
     private float progresso = 0f;
-    private float progressoSegurar = 0f;
+
+    private PlayerTopDownController player;
 
     void Start()
     {
-        spriteE.SetActive(false);
-        painelMinigame.SetActive(false);
-        painelSegurar.SetActive(false);
-        barraProgresso.fillAmount = 0f;
-        barraSegurar.fillAmount = 0f;
+        // Cria botão E dinamicamente se não estiver atribuído
+        if (spriteE == null)
+        {
+            GameObject canvasObj = GameObject.Find("Canvas");
+            if (canvasObj == null)
+            {
+                canvasObj = new GameObject("Canvas");
+                Canvas canvas = canvasObj.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvasObj.AddComponent<CanvasScaler>();
+                canvasObj.AddComponent<GraphicRaycaster>();
+            }
 
-        if (fogueiraGameObject != null)
-            fogueiraGameObject.SetActive(false); // Começa invisível
+            spriteE = new GameObject("BotaoE");
+            spriteE.transform.SetParent(canvasObj.transform);
+
+            Image img = spriteE.AddComponent<Image>();
+            // Aqui você pode adicionar o sprite que quiser
+            // img.sprite = seuSprite;
+
+            RectTransform rt = spriteE.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(50, 50);
+            rt.anchorMin = new Vector2(0.5f, 0.2f);
+            rt.anchorMax = new Vector2(0.5f, 0.2f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+
+            spriteE.SetActive(false);
+        }
+
+        if (painelMinigame != null) painelMinigame.SetActive(false);
+        if (barraProgresso != null) barraProgresso.fillAmount = 0f;
+
+        player = GameObject.FindGameObjectWithTag("Player")?.GetComponent<PlayerTopDownController>();
     }
 
     void Update()
     {
         if (!playerPerto) return;
 
-        bool temMadeira = Inventory.instance != null && Inventory.instance.madeira >= madeiraNecessaria;
-        spriteE.SetActive(temMadeira && !minigameAtivo && !segurandoAtivo);
+        // Só permite iniciar minigame se todas as madeiras foram coletadas
+        bool todasMadeirasColetadas = Inventory.instance != null && Inventory.instance.madeira >= Inventory.instance.madeiraMaxima;
 
-        // Iniciar minigame de clique
-        if (temMadeira && Input.GetKeyDown(KeyCode.E))
+        if (spriteE != null)
+            spriteE.SetActive(todasMadeirasColetadas && !minigameAtivo && !fogueiraCriada);
+
+        // Inicia minigame de clique
+        if (todasMadeirasColetadas && Input.GetKeyDown(KeyCode.E))
         {
-            if (!minigameAtivo && !segurandoAtivo && !fogueiraCriada)
+            if (!minigameAtivo && !fogueiraCriada)
                 IniciarMinigameClique();
         }
 
-        // Atualização do minigame de clique
+        // Minigame clique
         if (minigameAtivo)
         {
+            if (player != null) player.canMove = false;
+
             progresso -= Time.deltaTime / tempoParaZerar;
             if (progresso < 0f) progresso = 0f;
-            barraProgresso.fillAmount = progresso;
+            if (barraProgresso != null) barraProgresso.fillAmount = progresso;
 
             if (Input.GetMouseButtonDown(0))
             {
                 progresso += aumentoPorClique;
                 if (progresso > 1f) progresso = 1f;
-                barraProgresso.fillAmount = progresso;
+                if (barraProgresso != null) barraProgresso.fillAmount = progresso;
 
                 if (progresso >= 1f)
-                    MostrarFogueiraApagada(); // Quando termina, fogueira aparece
+                    InstanciarFogueiraAcesa();
             }
         }
-
-        // Minigame de segurar: decaimento se soltar
-        if (segurandoAtivo && !botaoSegurando)
-        {
-            progressoSegurar -= Time.deltaTime / tempoParaDecair;
-            if (progressoSegurar < 0f) progressoSegurar = 0f;
-            barraSegurar.fillAmount = progressoSegurar;
-        }
     }
 
-    // ----------------- MINIGAME DE CLIQUE -----------------
     void IniciarMinigameClique()
     {
-        painelMinigame.SetActive(true);
+        if (painelMinigame != null) painelMinigame.SetActive(true);
         minigameAtivo = true;
         progresso = 0f;
-        barraProgresso.fillAmount = 0f;
-        spriteE.SetActive(false);
+        if (barraProgresso != null) barraProgresso.fillAmount = 0f;
+        if (spriteE != null) spriteE.SetActive(false);
     }
 
-    void MostrarFogueiraApagada()
+    void InstanciarFogueiraAcesa()
     {
-        if (Inventory.instance != null)
-            Inventory.instance.RemoverMadeira(madeiraNecessaria);
-
-        painelMinigame.SetActive(false);
         minigameAtivo = false;
         fogueiraCriada = true;
 
-        // Ativa a fogueira apagada (sprite sem fogo)
-        if (fogueiraGameObject != null)
-            fogueiraGameObject.SetActive(true);
+        if (painelMinigame != null) painelMinigame.SetActive(false);
 
-        // Ativa painel de segurar
-        painelSegurar.SetActive(true);
-        progressoSegurar = 0f;
-        barraSegurar.fillAmount = 0f;
-        spriteE.SetActive(true);
-        segurandoAtivo = true;
+        // Remove madeira necessária para a fogueira
+        if (Inventory.instance != null)
+            Inventory.instance.RemoverMadeira(madeiraNecessaria);
+
+        // Instancia o prefab da fogueira já acesa
+        if (prefabFogueiraAcesa != null)
+        {
+            Instantiate(prefabFogueiraAcesa, transform.position, Quaternion.identity);
+        }
+        else
+        {
+            Debug.LogWarning("Prefab da fogueira acesa não foi atribuído!");
+        }
+
+        if (player != null)
+            player.canMove = true;
+
+        Debug.Log("Fogueira instanciada e acesa!");
     }
 
-    // ----------------- MINIGAME DE SEGURAR -----------------
-    public void AumentarBarraSegurar(float delta)
-    {
-        if (!segurandoAtivo) return;
-
-        progressoSegurar += delta / tempoParaSegurar;
-        if (progressoSegurar > 1f) progressoSegurar = 1f;
-        barraSegurar.fillAmount = progressoSegurar;
-
-        if (progressoSegurar >= 1f)
-            AcenderFogueira();
-    }
-
-    void AcenderFogueira()
-    {
-        segurandoAtivo = false;
-        painelSegurar.SetActive(false);
-        spriteE.SetActive(false);
-
-        // Dispara a animação de fogo
-        if (animFogueira != null)
-            animFogueira.SetTrigger("Acender");
-
-        Debug.Log("Fogueira acesa!");
-    }
-
-    // ----------------- TRIGGER DO PLAYER -----------------
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
@@ -152,16 +147,10 @@ public class Bonfire : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerPerto = false;
-            spriteE.SetActive(false);
-            painelMinigame.SetActive(false);
-            painelSegurar.SetActive(false);
-            progresso = 0f;
-            progressoSegurar = 0f;
-            barraProgresso.fillAmount = 0f;
-            barraSegurar.fillAmount = 0f;
+            if (spriteE != null) spriteE.SetActive(false);
+            if (painelMinigame != null) painelMinigame.SetActive(false);
+            if (barraProgresso != null) barraProgresso.fillAmount = 0f;
             minigameAtivo = false;
-            segurandoAtivo = false;
-            botaoSegurando = false;
         }
     }
 }

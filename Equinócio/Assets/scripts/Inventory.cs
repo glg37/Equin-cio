@@ -40,7 +40,7 @@ public class Inventory : MonoBehaviour
 
         AtualizarUI();
 
-        //  Checa se completou a missão
+        // Checa se completou a missão
         if (madeira >= madeiraMaxima)
         {
             MissaoConcluida();

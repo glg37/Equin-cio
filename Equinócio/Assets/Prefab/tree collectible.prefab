@@ -276,6 +276,7 @@ GameObject:
   - component: {fileID: 49249521625934780}
   - component: {fileID: 1527459730282263436}
   - component: {fileID: 6856951672737008549}
+  - component: {fileID: -7898603493461138502}
   m_Layer: 0
   m_Name: Tree collectible
   m_TagString: Untagged
@@ -342,7 +343,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_Sprite: {fileID: -162379129026343598, guid: da89db1bc6682654d876ee43dcbf3b55,
     type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -423,6 +424,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.47, y: 0.66}
   m_EdgeRadius: 0
+--- !u!114 &-7898603493461138502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7080851396169288695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17c8104d163d6194a85c0838aabcfa49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  transparency: 0.5
 --- !u!1 &8146395396537578180
 GameObject:
   m_ObjectHideFlags: 0
