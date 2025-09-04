@@ -5,12 +5,24 @@ public class Inventory : MonoBehaviour
 {
     public static Inventory instance;
 
-    [Header("Recursos")]
+    [Header("Missões")]
+    public bool missaoMadeiraConcluida = false;
+    public bool missaoFogueirasConcluida = false;
+
+    [Header("Madeira")]
     public int madeira = 0;
     public int madeiraMaxima = 15;
-
-    [Header("UI de Recursos")]
     public TextMeshProUGUI textoMadeira;
+
+    [Header("Fogueiras")]
+    public int fogueirasAcendidas = 0;
+    public int fogueirasTotais = 3;
+    public TextMeshProUGUI textoFogueiras;
+
+    [Header("Folhas")]
+    public int folhasColetadas = 0;
+    public int folhasNecessarias = 10;
+    public TextMeshProUGUI textoFolhas;
 
     private void Awake()
     {
@@ -27,23 +39,28 @@ public class Inventory : MonoBehaviour
 
     private void Start()
     {
-        // UI só aparece depois do diálogo inicial
-        if (textoMadeira != null)
-            textoMadeira.gameObject.SetActive(false);
+        if (textoMadeira != null) textoMadeira.gameObject.SetActive(false);
+        if (textoFogueiras != null) textoFogueiras.gameObject.SetActive(false);
+        if (textoFolhas != null) textoFolhas.gameObject.SetActive(false);
     }
 
+    // ------------------- MADEIRA -------------------
     public void AdicionarMadeira(int quantidade)
     {
         madeira += quantidade;
-        if (madeira > madeiraMaxima)
-            madeira = madeiraMaxima;
+        if (madeira > madeiraMaxima) madeira = madeiraMaxima;
 
-        AtualizarUI();
+        MostrarMissaoMadeira();
 
-        // Checa se completou a missão
-        if (madeira >= madeiraMaxima)
+        if (madeira >= madeiraMaxima && !missaoMadeiraConcluida)
         {
-            MissaoConcluida();
+            missaoMadeiraConcluida = true;
+            Debug.Log("Missão de madeira concluída!");
+
+            // Chama o diálogo pós-missão de madeira
+            NpcDialogue npc = Object.FindFirstObjectByType<NpcDialogue>();
+            if (npc != null)
+                npc.StartAfterMissionDialogue();
         }
     }
 
@@ -52,35 +69,68 @@ public class Inventory : MonoBehaviour
         if (madeira >= quantidade)
         {
             madeira -= quantidade;
-            AtualizarUI();
+            MostrarMissaoMadeira();
             return true;
         }
         return false;
     }
 
-    private void AtualizarUI()
+    public void MostrarMissaoMadeira()
     {
         if (textoMadeira != null)
         {
             textoMadeira.text = "Madeiras coletadas: " + madeira + "/" + madeiraMaxima;
             textoMadeira.gameObject.SetActive(true);
         }
+        if (textoFogueiras != null) textoFogueiras.gameObject.SetActive(false);
+        if (textoFolhas != null) textoFolhas.gameObject.SetActive(false);
     }
 
-    public void MostrarMissao()
+    // ------------------- FOGUEIRAS -------------------
+    public void FogueiraAcendida()
     {
-        AtualizarUI();
-    }
+        fogueirasAcendidas++;
+        MostrarMissaoFogueiras();
 
-    private void MissaoConcluida()
-    {
-        Debug.Log("Missão de coletar madeira concluída!");
-
-        // chama o diálogo de pós-missão
-        NpcDialogue npc = Object.FindFirstObjectByType<NpcDialogue>();
-        if (npc != null)
+        // Se todas as fogueiras estiverem acesas
+        if (fogueirasAcendidas >= fogueirasTotais && !missaoFogueirasConcluida)
         {
-            npc.StartAfterMissionDialogue();
+            missaoFogueirasConcluida = true;
+            Debug.Log("Todas as fogueiras acesas! Agora a missão é coletar folhas.");
+
+            // Ativa o objetivo das folhas sem abrir diálogo
+            MostrarMissaoFolhas();
+        }
+    }
+
+    public void MostrarMissaoFogueiras()
+    {
+        if (textoMadeira != null) textoMadeira.gameObject.SetActive(false);
+        if (textoFogueiras != null)
+        {
+            textoFogueiras.text = "Acender fogueiras: " + fogueirasAcendidas + "/" + fogueirasTotais;
+            textoFogueiras.gameObject.SetActive(true);
+        }
+        if (textoFolhas != null) textoFolhas.gameObject.SetActive(false);
+    }
+
+    // ------------------- FOLHAS -------------------
+    public void AdicionarFolhas(int quantidade)
+    {
+        folhasColetadas += quantidade;
+        if (folhasColetadas > folhasNecessarias) folhasColetadas = folhasNecessarias;
+
+        MostrarMissaoFolhas();
+    }
+
+    public void MostrarMissaoFolhas()
+    {
+        if (textoMadeira != null) textoMadeira.gameObject.SetActive(false);
+        if (textoFogueiras != null) textoFogueiras.gameObject.SetActive(false);
+        if (textoFolhas != null)
+        {
+            textoFolhas.text = "Coletar folhas secas: " + folhasColetadas + "/" + folhasNecessarias;
+            textoFolhas.gameObject.SetActive(true);
         }
     }
 }

@@ -116,19 +116,17 @@ public class Bonfire : MonoBehaviour
 
         if (painelMinigame != null) painelMinigame.SetActive(false);
 
-        // Remove madeira necessária para a fogueira
+        // Remove madeira necessária
         if (Inventory.instance != null)
             Inventory.instance.RemoverMadeira(madeiraNecessaria);
 
-        // Instancia o prefab da fogueira já acesa
+        // Marca fogueira como acesa e atualiza contador
+        if (Inventory.instance != null)
+            Inventory.instance.FogueiraAcendida(); // <- Isso dispara o diálogo pós-fogueiras
+
+        // Instancia a fogueira acesa na cena
         if (prefabFogueiraAcesa != null)
-        {
             Instantiate(prefabFogueiraAcesa, transform.position, Quaternion.identity);
-        }
-        else
-        {
-            Debug.LogWarning("Prefab da fogueira acesa não foi atribuído!");
-        }
 
         if (player != null)
             player.canMove = true;
